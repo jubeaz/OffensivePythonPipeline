@@ -2,14 +2,6 @@
 
 https://github.com/batonogov/docker-pyinstaller
 
-batonogov/pyinstaller-linux
-
-- builded binaries are owned by root find a way to make them owned by current user or pass the user to script.
-- add rust to base image 
-
-
-docker build -t offensivepythonlinux .
-
 
 # OffensivePythonPipeline
 

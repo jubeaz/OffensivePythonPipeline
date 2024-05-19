@@ -36,24 +36,24 @@ PYTHON_INSTALLER_LAST_URL="https://www.python.org/ftp/python/3.9.9/python-3.9.9.
 MS_CPP_REDIS_x86_URL="http://download.microsoft.com/download/5/B/C/5BC5DBB3-652D-4DCE-B14A-475AB85EEF6E/vcredist_x86.exe"
 MS_CPP_REDIS_x64_URL="https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x64.exe"
 
-#CERTIPY_URL="https://github.com/ly4k/Certipy/archive/main.zip"
-#CRACKMAPEXEC_URL="https://github.com/byt3bl33d3r/CrackMapExec/archive/master.zip"
-#ENUM4LINUXNG_URL="https://github.com/cddmp/enum4linux-ng/archive/master.zip"
-#GMSADUMPER_URL="https://github.com/micahvandeusen/gMSADumper/archive/main.zip"
-#IMPACKET_URL="https://github.com/SecureAuthCorp/impacket/archive/master.zip"
-#ITWASALLADREAM_URL="https://github.com/byt3bl33d3r/ItWasAllADream/archive/master.zip"
-#LAZAGNE_URL="https://github.com/AlessandroZ/LaZagne/archive/master.zip"
-#LSASSY_URL="https://github.com/Hackndo/lsassy/archive/master.zip"
-#NOPAC_URL="https://github.com/Ridter/noPac/archive/main.zip"
-#PACHINE_URL="https://github.com/ly4k/Pachine/archive/main.zip"
-#PRINTNIGHTMARE_URL="https://github.com/cube0x0/CVE-2021-1675/archive/main.zip"
-#PYPYKATZ_URL="https://github.com/skelsec/pypykatz/archive/master.zip"
-#PYWERVIEW_URL="https://github.com/the-useless-one/pywerview/archive/master.zip"
-#RESPONDER_URL="https://github.com/lgandx/Responder/archive/master.zip"
-#SMARTBRUTE_URL="https://github.com/ShutdownRepo/smartbrute/archive/main.zip"
-#SMBMAP_URL="https://github.com/ShawnDEvans/smbmap/archive/master.zip"
-#PYWHISKER_URL="https://github.com/ShutdownRepo/pywhisker/archive/main.zip"
-#ZEROLOGON_URL="https://github.com/dirkjanm/CVE-2020-1472/archive/master.zip"
+CERTIPY_URL="https://github.com/ly4k/Certipy/archive/main.zip"
+CRACKMAPEXEC_URL="https://github.com/byt3bl33d3r/CrackMapExec/archive/master.zip"
+ENUM4LINUXNG_URL="https://github.com/cddmp/enum4linux-ng/archive/master.zip"
+GMSADUMPER_URL="https://github.com/micahvandeusen/gMSADumper/archive/main.zip"
+IMPACKET_URL="https://github.com/SecureAuthCorp/impacket/archive/master.zip"
+ITWASALLADREAM_URL="https://github.com/byt3bl33d3r/ItWasAllADream/archive/master.zip"
+LAZAGNE_URL="https://github.com/AlessandroZ/LaZagne/archive/master.zip"
+LSASSY_URL="https://github.com/Hackndo/lsassy/archive/master.zip"
+NOPAC_URL="https://github.com/Ridter/noPac/archive/main.zip"
+PACHINE_URL="https://github.com/ly4k/Pachine/archive/main.zip"
+PRINTNIGHTMARE_URL="https://github.com/cube0x0/CVE-2021-1675/archive/main.zip"
+PYPYKATZ_URL="https://github.com/skelsec/pypykatz/archive/master.zip"
+PYWERVIEW_URL="https://github.com/the-useless-one/pywerview/archive/master.zip"
+RESPONDER_URL="https://github.com/lgandx/Responder/archive/master.zip"
+SMARTBRUTE_URL="https://github.com/ShutdownRepo/smartbrute/archive/main.zip"
+SMBMAP_URL="https://github.com/ShawnDEvans/smbmap/archive/master.zip"
+PYWHISKER_URL="https://github.com/ShutdownRepo/pywhisker/archive/main.zip"
+ZEROLOGON_URL="https://github.com/dirkjanm/CVE-2020-1472/archive/master.zip"
 
 help:                    ## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
@@ -141,10 +141,11 @@ linux_responder:         ## Compiles Linux binaries for Responder.
 	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip $(RESPONDER_URL); fi
 	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder; fi
 	@$(MAKE) -f $(THIS_FILE) _docker_linux_run
+	sudo chown $$(id -u):$$(id -g) $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/*
 	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	sudo mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	sudo mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/MultiRelay_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	sudo mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.conf $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/MultiRelay_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.conf $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
 
 linux_impacket:          ## Compiles Linux binaries for SecureAuthCorp's impacket examples.
 	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
@@ -153,6 +154,7 @@ linux_impacket:          ## Compiles Linux binaries for SecureAuthCorp's impacke
 	chmod +x $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 	@$(MAKE) -f $(THIS_FILE) _docker_linux_run
 	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket
+	sudo chown $$(id -u):$$(id -g) $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/*
 	sudo mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/impacket/*_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket/
 
 #linux_certipy:           ## Compiles Linux binary for ly4k's Certipy.
