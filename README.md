@@ -1,3 +1,6 @@
+# to do
+- builded binaries are owned by root find a way to make them owned by current user or pass the user to script.
+- add rust to base image 
 # OffensivePythonPipeline
 
 This repository contains the following static standalone binaries of Python
