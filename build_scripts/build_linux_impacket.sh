@@ -12,8 +12,11 @@ set -euo pipefail
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
 
-python -m pip install --upgrade pip
+apt-get update && apt-get upgrade -y
+apt-get install curl build-essential gcc make -y
 
+python -m pip install --upgrade pip
+apt-get install -y rustc
 # Install impacket
 cd /host_build/impacket-SecureAuthCorp/
 pip install .

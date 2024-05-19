@@ -1,9 +1,11 @@
-.PHONY: all windows windows_certipy windows_crackmapexec windows_gmsadumper windows_impacket windows_itwasalladream windows_lazagne windows_lsassy windows_pachine windows_printnightmare windows_pypykatz windows_pywhisker windows_zerologon linux linux_certipy linux_crackmapexec linux_enum4linuxng linux_gmsadumper linux_impacket linux_itwasalladream linux_lazagne linux_lsassy linux_pachine linux_printnightmare linux_pypykatz linux_pywhisker linux_responder linux_smbmap linux_zerologon clean test
+#.PHONY: all windows windows_certipy windows_crackmapexec windows_gmsadumper windows_impacket windows_itwasalladream windows_lazagne windows_lsassy windows_pachine windows_printnightmare windows_pypykatz windows_pywhisker windows_zerologon linux linux_certipy linux_crackmapexec linux_enum4linuxng linux_gmsadumper linux_impacket linux_itwasalladream linux_lazagne linux_lsassy linux_pachine linux_printnightmare linux_pypykatz linux_pywhisker linux_responder linux_smbmap linux_zerologon clean test
+.PHONY: all linux linux_certipy linux_crackmapexec linux_enum4linuxng linux_gmsadumper linux_impacket linux_itwasalladream linux_lazagne linux_lsassy linux_pachine linux_printnightmare linux_pypykatz linux_pywhisker linux_responder linux_smbmap linux_zerologon clean test
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
 # Should both be updated to match your environment.
-PROJECT_PATH_LINUX=/mnt/c/Users/User/OffensivePythonPipeline
-PROJECT_PATH_WINDOWS=C:\Users\User\OffensivePythonPipeline
+PROJECT_PATH_LINUX=/home/jubeaz/dev/OffensivePython
+PROJECT_PATH_WINDOWS=
+
 
 BUILD_FOLDER=tmp_build
 OUTPUT_FOLDER=binaries
@@ -20,7 +22,8 @@ DOCKER_WINDOWS_DELETE=docker rm --force $(DOCKER_WINDOWS_CONTAINER)
 DOCKER_WINDOWS_EXEC=docker exec -t $(DOCKER_WINDOWS_CONTAINER) powershell -NoP -ExecutionPolicy Bypass -File $(DOCKER_WINDOWS_BUILD_FOLDER)\$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
 
 DOCKER_LINUX_CONTAINER=OffensivePythonPipelineLinux
-DOCKER_LINUX_IMAGE=cdrx/pyinstaller-linux
+#DOCKER_LINUX_IMAGE=cdrx/pyinstaller-linux
+DOCKER_LINUX_IMAGE=batonogov/pyinstaller-linux
 DOCKER_LINUX_ENTRYPOINT_FILE=build.sh
 DOCKER_LINUX_BUILD_FOLDER=/host_build
 DOCKER_LINUX_RUN_SINGLE=docker run --rm -v "${PROJECT_PATH_LINUX}/$(BUILD_FOLDER):$(DOCKER_LINUX_BUILD_FOLDER)" -w "$(DOCKER_LINUX_BUILD_FOLDER)" $(DOCKER_LINUX_IMAGE) $(DOCKER_LINUX_BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
@@ -117,167 +120,168 @@ _docker_linux_run:
 	if [ "$$(docker image ls $(DOCKER_LINUX_IMAGE)-tmp | grep "$(DOCKER_LINUX_IMAGE)-tmp")" ]; then echo "Executing command using already commited image..." && $(DOCKER_LINUX_EXEC); else echo "Starting new container..." && $(DOCKER_LINUX_RUN_SINGLE); fi
 
 all:                     ## Compiles all binaries for both Windows and Linux.
-all: windows linux
+#all: windows linux
+all: linux
 
-windows:                 ## Compiles all Windows binaries.
-windows: _docker_switch_windows _docker_windows_create windows_crackmapexec windows_gmsadumper windows_lsassy windows_lazagne windows_zerologon windows_printnightmare windows_pachine windows_pywhisker windows_smartbrute windows_itwasalladream windows_pypykatz windows_impacket windows_certipy windows_nopac _docker_windows_rm
-
-windows_certipy:         ## Compiles Windows binary for ly4k's Certipy.
-	@$(MAKE) -f $(THIS_FILE) _python_last_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_certipy.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip $(CERTIPY_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/certipy_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_crackmapexec:    ## Compiles Windows binary for byt3bl33d3r's CrackMapExec.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_crackmapexec.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip $(PYWERVIEW_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview; fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CrackMapExec" ]; then cd $(PROJECT_PATH_LINUX) && git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CrackMapExec; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/crackmapexec_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_gmsadumper:      ## Compiles Windows binary for micahvandeusen's gMSADumper.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_gmsadumper.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip $(GMSADUMPER_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_impacket:        ## Compiles Windows binaries for SecureAuthCorp's impacket examples.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_impacket.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/impacket/*_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket/
-
-windows_itwasalladream:  ## Compiles Windows binary for byt3bl33d3r's ItWasAllADream.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_itwasalladream.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip $(ITWASALLADREAM_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_lazagne:         ## Compiles Windows binary for AlessandroZ's LaZagne.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _ms_cpp_redis_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_lazagne.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip $(LAZAGNE_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_lsassy:          ## Compiles Windows binary for Hackndo's lsassy.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_lsassy.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip $(LSASSY_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_nopac:           ## Compiles Windows binary for Ridter's noPac.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_nopac.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip $(NOPAC_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac_*.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_pachine:         ## Compiles Windows binary for ly4k's Pachine.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pachine.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip $(PACHINE_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pachine_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_printnightmare:  ## Compiles Windows binary for cube0x0's CVE-2021-1675.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_printnightmare.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip $(PRINTNIGHTMARE_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_pypykatz:        ## Compiles Windows binary for skelsec's pypykatz.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pypykatz.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip $(PYPYKATZ_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_pywhisker:       ## Compiles Windows binary for Shutdown's pywhisker.
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pywhisker.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip $(PYWHISKER_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-# ! Not functional ! Compiles Windows binaries for Responder.
-windows_responder:
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_responder.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip $(RESPONDER_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/MultiRelay_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.conf $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
-
-windows_smartbrute:      ## Compiles Windows binaries for Shutdown's smartbrute.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_smartbrute.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip $(SMARTBRUTE_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-# ! Non-functionnal ! Compiles Windows binary for ShawnDEvans' smbmap.
-windows_smbmap:
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_smbmap.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip $(SMBMAP_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-
-windows_zerologon:       ## Compiles Windows binaries for dirkjanm's CVE-2020-1472.
-	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
-	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
-	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_zerologon.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
-	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip $(ZEROLOGON_URL); fi
-	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472; fi
-	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
-	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/cve-2020-1472-exploit_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
-	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/restorepassword_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#windows:                 ## Compiles all Windows binaries.
+#windows: _docker_switch_windows _docker_windows_create windows_crackmapexec windows_gmsadumper windows_lsassy windows_lazagne windows_zerologon windows_printnightmare windows_pachine windows_pywhisker windows_smartbrute windows_itwasalladream windows_pypykatz windows_impacket windows_certipy windows_nopac _docker_windows_rm
+#
+#windows_certipy:         ## Compiles Windows binary for ly4k's Certipy.
+#	@$(MAKE) -f $(THIS_FILE) _python_last_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_certipy.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip $(CERTIPY_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Certipy; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/certipy_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_crackmapexec:    ## Compiles Windows binary for byt3bl33d3r's CrackMapExec.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_crackmapexec.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip $(PYWERVIEW_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywerview; fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CrackMapExec" ]; then cd $(PROJECT_PATH_LINUX) && git clone --recursive https://github.com/byt3bl33d3r/CrackMapExec $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CrackMapExec; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/crackmapexec_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_gmsadumper:      ## Compiles Windows binary for micahvandeusen's gMSADumper.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_gmsadumper.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip $(GMSADUMPER_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/gMSADumper_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_impacket:        ## Compiles Windows binaries for SecureAuthCorp's impacket examples.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_impacket.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/impacket/*_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket/
+#
+#windows_itwasalladream:  ## Compiles Windows binary for byt3bl33d3r's ItWasAllADream.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_itwasalladream.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip $(ITWASALLADREAM_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/ItWasAllADream_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_lazagne:         ## Compiles Windows binary for AlessandroZ's LaZagne.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _ms_cpp_redis_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_lazagne.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip $(LAZAGNE_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lazagne_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_lsassy:          ## Compiles Windows binary for Hackndo's lsassy.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_lsassy.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip $(LSASSY_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/lsassy_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_nopac:           ## Compiles Windows binary for Ridter's noPac.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_nopac.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip $(NOPAC_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/noPac_*.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_pachine:         ## Compiles Windows binary for ly4k's Pachine.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pachine.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip $(PACHINE_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Pachine; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pachine_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_printnightmare:  ## Compiles Windows binary for cube0x0's CVE-2021-1675.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_printnightmare.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip $(PRINTNIGHTMARE_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2021-1675_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_pypykatz:        ## Compiles Windows binary for skelsec's pypykatz.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pypykatz.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip $(PYPYKATZ_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pypykatz_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_pywhisker:       ## Compiles Windows binary for Shutdown's pywhisker.
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_pywhisker.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip $(PYWHISKER_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/pywhisker_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+## ! Not functional ! Compiles Windows binaries for Responder.
+#windows_responder:
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_responder.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip $(RESPONDER_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/MultiRelay_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.conf $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/Responder/
+#
+#windows_smartbrute:      ## Compiles Windows binaries for Shutdown's smartbrute.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_smartbrute.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip $(SMARTBRUTE_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute-main $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smartbrute_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+## ! Non-functionnal ! Compiles Windows binary for ShawnDEvans' smbmap.
+#windows_smbmap:
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_smbmap.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip $(SMBMAP_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/smbmap_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#
+#windows_zerologon:       ## Compiles Windows binaries for dirkjanm's CVE-2020-1472.
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
+#	@$(MAKE) -f $(THIS_FILE) _python_download _impacket_download
+#	cp $(PROJECT_PATH_LINUX)/build_scripts/build_windows_zerologon.ps1 $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
+#	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip $(ZEROLOGON_URL); fi
+#	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/CVE-2020-1472; fi
+#	@$(MAKE) -f $(THIS_FILE) _docker_windows_run
+#	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/cve-2020-1472-exploit_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
+#	mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/restorepassword_windows.exe $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/
 
 linux:                   ## Compiles all Linux binaries.
 linux: _docker_switch_linux _docker_linux_create linux_crackmapexec linux_gmsadumper linux_lsassy linux_lazagne linux_zerologon linux_pachine linux_printnightmare linux_pywhisker linux_smartbrute linux_itwasalladream linux_enum4linuxng linux_pypykatz linux_smbmap linux_responder linux_impacket linux_certipy linux_nopac _docker_linux_rm
