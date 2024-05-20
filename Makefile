@@ -7,7 +7,7 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 PROJECT_PATH_LINUX=/home/jubeaz/dev/OffensivePython
 PROJECT_PATH_WINDOWS=
 
-PYTHON_BUILD_VERSION=3.8.11
+PYTHON_BUILD_VERSION=3.8.10
 BUILD_FOLDER=tmp_build
 OUTPUT_FOLDER=binaries_${PYTHON_BUILD_VERSION}
 
@@ -22,10 +22,13 @@ DOCKER_WINDOWS_CREATE=docker run -t -d --name $(DOCKER_WINDOWS_CONTAINER) -v "$(
 DOCKER_WINDOWS_DELETE=docker rm --force $(DOCKER_WINDOWS_CONTAINER)
 DOCKER_WINDOWS_EXEC=docker exec -t $(DOCKER_WINDOWS_CONTAINER) powershell -NoP -ExecutionPolicy Bypass -File $(DOCKER_WINDOWS_BUILD_FOLDER)\$(DOCKER_WINDOWS_ENTRYPOINT_FILE)
 
+DOCKER_LINUX_IMAGE_PATH=$(PROJECT_PATH_LINUX)/docker/Dockerfile-py3-linux
 DOCKER_LINUX_CONTAINER=OffensivePythonPipelineLinux
 DOCKER_LINUX_IMAGE=offensivepythonlinux_${PYTHON_BUILD_VERSION}
 DOCKER_LINUX_ENTRYPOINT_FILE=build.sh
 DOCKER_LINUX_BUILD_FOLDER=/host_build
+#DOCKER_LINUX_BUILD_IMAGE=cp $(DOCKER_LINUX_IMAGE_PATH) $(DOCKER_LINUX_IMAGE_PATH)-tmp && sed -i "s/^FROM python:.*/FROM python:${PYTHON_BUILD_VERSION}/g" $(DOCKER_LINUX_IMAGE_PATH)-tmp && docker build . -t ${DOCKER_LINUX_IMAGE} -f  $(DOCKER_LINUX_IMAGE_PATH) && rm $(DOCKER_LINUX_IMAGE_PATH)-tmp
+DOCKER_LINUX_BUILD_IMAGE=cp $(DOCKER_LINUX_IMAGE_PATH) $(DOCKER_LINUX_IMAGE_PATH)-tmp && sed -i "s/^FROM python:.*/FROM python:${PYTHON_BUILD_VERSION}/g" $(DOCKER_LINUX_IMAGE_PATH)-tmp && docker build . -t ${DOCKER_LINUX_IMAGE} -f  $(DOCKER_LINUX_IMAGE_PATH)
 DOCKER_LINUX_RUN_SINGLE=docker run --rm -v "${PROJECT_PATH_LINUX}/$(BUILD_FOLDER):$(DOCKER_LINUX_BUILD_FOLDER)" -w "$(DOCKER_LINUX_BUILD_FOLDER)" $(DOCKER_LINUX_IMAGE) $(DOCKER_LINUX_BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 DOCKER_LINUX_CREATE=docker create -it --name $(DOCKER_LINUX_CONTAINER) $(DOCKER_LINUX_IMAGE) && docker commit $(DOCKER_LINUX_CONTAINER) $(DOCKER_LINUX_IMAGE)-tmp && docker rm $(DOCKER_LINUX_CONTAINER)
 DOCKER_LINUX_DELETE=docker rm --force $(DOCKER_LINUX_CONTAINER)
@@ -59,7 +62,7 @@ help:                    ## Show this help.
 	@fgrep -h "##" $(MAKEFILE_LIST) | fgrep -v fgrep | sed -e 's/\\$$//' | sed -e 's/##//'
 
 _build_image_linux:
-	if [ ! "$$(docker image ls $(DOCKER_LINUX_IMAGE) | grep "$(DOCKER_LINUX_IMAGE)")" ]; then sed -i "s/^FROM python:.*/FROM python:${PYTHON_BUILD_VERSION}/g" ./docker/Dockerfile-py3-linux; docker build . -t ${DOCKER_LINUX_IMAGE} -f  ./docker/Dockerfile-py3-linux; else echo "Image existing"; fi
+	if [ ! "$$(docker image ls $(DOCKER_LINUX_IMAGE) | grep "$(DOCKER_LINUX_IMAGE)")" ]; then $(DOCKER_LINUX_BUILD_IMAGE); else echo "Image existing"; fi
 #	 sed -i "s/^FROM python:.*/FROM python:${PYTHON_BUILD_VERSION}/g" ./docker/Dockerfile
 #	docker build -t ${DOCKER_LINUX_IMAGE} ./docker
 
