@@ -12,11 +12,11 @@ set -euo pipefail
 ROOT=$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )
 cd "${ROOT}"
 
-apt-get update && apt-get upgrade -y
-apt-get install curl build-essential gcc make -y
+#apt-get update && apt-get upgrade -y
+#apt-get install curl build-essential gcc make -y
+#apt-get install -y rustc
+#python -m pip install --upgrade pip
 
-python -m pip install --upgrade pip
-apt-get install -y rustc
 # Install impacket
 cd /host_build/impacket-SecureAuthCorp/
 pip install .
@@ -24,10 +24,12 @@ pip install .
 # Hardcode UTF-8 in shells.
 sed -r -i.bak 's/sys\.std(in|out)\.encoding/"UTF-8"/g' /host_build/impacket-SecureAuthCorp/examples/*exec.py  
 
+
+#pyinstaller --path "/usr/local/lib/python3.8/site-packages/impacket","/usr/local/lib/python3.8/site-packages","/usr/local/lib/python3.8" --hidden-import=impacket.examples.utils --specpath /tmp/spec --workpath /tmp/build --distpath /tmp/out --clean -F /host_build/impacket-SecureAuthCorp/examples/ntlmrelayx.py
 # Create standalone executables
 for i in /host_build/impacket-SecureAuthCorp/examples/*.py
 do
-    pyinstaller --specpath /tmp/spec --workpath /tmp/build --distpath /tmp/out --clean -F $i
+    pyinstaller --path "/usr/local/lib/python3.8/site-packages/impacket","/usr/local/lib/python3.8/site-packages","/usr/local/lib/python3.8" --hidden-import=impacket.examples.utils --specpath /tmp/spec --workpath /tmp/build --distpath /tmp/out --clean -F $i
 done
 
 # Rename binaries and move
@@ -37,3 +39,4 @@ mv /tmp/out/*_linux /host_build/impacket/
 
 # Restore backup file
 for fn in /host_build/impacket-SecureAuthCorp/examples/*.bak; do mv -f "${fn}" "${fn%%.bak}"; done
+
