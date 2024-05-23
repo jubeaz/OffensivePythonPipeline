@@ -14,6 +14,7 @@ DOCKER_LINUX_CONTAINER=OffensivePythonPipelineLinux
 DOCKER_LINUX_IMAGE=offensivepythonlinux_${PYTHON_BUILD_VERSION}
 DOCKER_LINUX_ENTRYPOINT_FILE=build.sh
 DOCKER_LINUX_BUILD_FOLDER=/host_build
+PREPARE_ENTRYPOINT_FILE=sed -i "/^PYTHON_LIB_PATH=/c\PYTHON_LIB_PATH=/usr/local/lib/python3.8" $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 DOCKER_LINUX_BUILD_IMAGE=cp $(DOCKER_LINUX_IMAGE_PATH) $(DOCKER_LINUX_IMAGE_PATH)-tmp && sed -i "s/^FROM python:.*/FROM python:${PYTHON_BUILD_VERSION}/g" $(DOCKER_LINUX_IMAGE_PATH)-tmp && docker build . -t ${DOCKER_LINUX_IMAGE} -f  $(DOCKER_LINUX_IMAGE_PATH)
 DOCKER_LINUX_RUN_SINGLE=docker run --rm -v "${PROJECT_PATH_LINUX}/$(BUILD_FOLDER):$(DOCKER_LINUX_BUILD_FOLDER)" -w "$(DOCKER_LINUX_BUILD_FOLDER)" $(DOCKER_LINUX_IMAGE) $(DOCKER_LINUX_BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 DOCKER_LINUX_CREATE=docker create -it --name $(DOCKER_LINUX_CONTAINER) $(DOCKER_LINUX_IMAGE) && docker commit $(DOCKER_LINUX_CONTAINER) $(DOCKER_LINUX_IMAGE)-tmp && docker rm $(DOCKER_LINUX_CONTAINER)
@@ -78,6 +79,7 @@ linux_responder:         ## Compiles Linux binaries for Responder.
 	@$(MAKE) -f $(THIS_FILE) _build_image_linux
 	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
 	cp $(PROJECT_PATH_LINUX)/build_scripts/build_linux_responder.sh $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
+	$(PREPARE_ENTRYPOINT_FILE)
 	chmod +x $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 	if [ ! -f "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip" ]; then wget -O $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip $(RESPONDER_URL); fi
 	if [ ! -d "$(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder" ]; then unzip -q $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder.zip -d $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER) && mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder-master $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/Responder; fi
@@ -93,10 +95,11 @@ linux_impacket:          ## Compiles Linux binaries for SecureAuthCorp's impacke
 	mkdir -p $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)
 	@$(MAKE) -f $(THIS_FILE) _impacket_download
 	cp $(PROJECT_PATH_LINUX)/build_scripts/build_linux_impacket.sh $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
+	$(PREPARE_ENTRYPOINT_FILE)
 	chmod +x $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/$(DOCKER_LINUX_ENTRYPOINT_FILE)
 	@$(MAKE) -f $(THIS_FILE) _docker_linux_run
 	mkdir -p $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket
-	sudo chown $$(id -u):$$(id -g) $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/*
+	sudo chown $$(id -u):$$(id -g) $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/impacket/*
 	sudo mv -f $(PROJECT_PATH_LINUX)/$(BUILD_FOLDER)/impacket/*_linux $(PROJECT_PATH_LINUX)/$(OUTPUT_FOLDER)/impacket/
 
 #linux_certipy:           ## Compiles Linux binary for ly4k's Certipy.
